@@ -2,27 +2,20 @@
 *.slo
 *.lo
 *.o
-*.obj
-
-# Precompiled Headers
-*.gch
-*.pch
-
+# Project Files
+*.sublime-workspace
+*.sublime-project
 # Compiled Dynamic libraries
 *.so
-*.dylib
-*.dll
-
-# Fortran module files
-*.mod
-
 # Compiled Static libraries
 *.lai
 *.la
 *.a
-*.lib
-
-# Executables
-*.exe
-*.out
-*.app
+/nbproject/private/
+Makefile
+/build/CMakeFiles/
+# Build results
+/build/
+/Debug
+# Other struff
+.*~
