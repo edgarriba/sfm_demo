@@ -48,10 +48,16 @@ public:
   void detectAndCompute(const cv::Mat &image, KeyPointVec &kpts, cv::Mat &desc);
 
 
-  // Match features and get essential mat
+  // Match features and compute essential mat
   bool robustMatchEssentialMat(const cv::Mat &frame1, const cv::Mat &frame2,
     KeyPointVec &kpts1_inliers, KeyPointVec &kpts2_inliers,
     DMatchVec &inliers_matches, cv::Mat &essentialMat);
+
+
+  // Match features and compute fundamental mat
+  bool robustMatchFundamentalMat(const cv::Mat &frame1, const cv::Mat &frame2,
+    KeyPointVec &kpts1_inliers, KeyPointVec &kpts2_inliers,
+    DMatchVec &inliers_matches, cv::Mat &fundamentalMat);
 
 
   // Does NN Match
@@ -73,6 +79,10 @@ protected:
   void computeEssentialMat(const KeyPointVec &kpts1,
     const KeyPointVec &kpts2, cv::Mat &essentialMat, cv::Mat &inliers_mask);
 
+  // Compute the fundamental matrix given a set of 
+  // paired keypoints list
+  void computeFundamentalMat(const KeyPointVec &kpts1,
+    const KeyPointVec &kpts2, cv::Mat &fundamentalMat, cv::Mat &inliers_mask);
 
   // Extract the inliers keypoints given a mask
   void extractInliers(const cv::Mat &inliers_mask,

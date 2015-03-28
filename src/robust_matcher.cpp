@@ -80,7 +80,7 @@ void RobustMatcher::detectAndCompute(const cv::Mat &image, KeyPointVec &kpts, cv
 // ***********************************************************************
 
 
-// Match features and get essential mat
+// Match features and compute essential mat
 bool RobustMatcher::robustMatchEssentialMat(const cv::Mat &frame1, const cv::Mat &frame2,
   KeyPointVec &kpts1_inliers, KeyPointVec &kpts2_inliers,
   DMatchVec &inliers_matches, cv::Mat &essentialMat)
@@ -109,6 +109,43 @@ bool RobustMatcher::robustMatchEssentialMat(const cv::Mat &frame1, const cv::Mat
 
   // extract inliers
   extractInliers(inliers_mask, kpts1_good, kpts2_good, kpts1_inliers, kpts2_inliers, inliers_matches);
+
+  return true;
+}
+
+
+// ***********************************************************************
+
+
+// Match features and compute fundamental mat
+bool RobustMatcher::robustMatchFundamentalMat(const cv::Mat &frame1, const cv::Mat &frame2,
+  KeyPointVec &kpts1_inliers, KeyPointVec &kpts2_inliers,
+  DMatchVec &inliers_matches, cv::Mat &fundamentalMat)
+{
+  cv::Mat desc1, desc2, inliers_mask;
+  KeyPointVec kpts1, kpts1_good, kpts2, kpts2_good;
+  DMatchVec good_matches;
+  DMatchVec2 nn_matches;
+
+  // compute keypoints and decriptor and match
+  nnMatch(frame1, kpts1, desc1, frame2, kpts2, desc2, nn_matches);
+
+  // perform ratio test
+  ratioTest(nn_matches, good_matches, kpts1, kpts1_good, kpts2, kpts2_good);
+
+  // for essential mat we need
+  // at least 4 points
+  if(kpts2_good.size() >= 8)
+  {
+    computeFundamentalMat(kpts1_good, kpts2_good, fundamentalMat, inliers_mask);
+  }
+  else
+  {
+    return false;
+  }
+
+  // extract inliers
+  //extractInliers(inliers_mask, kpts1_good, kpts2_good, kpts1_inliers, kpts2_inliers, inliers_matches);
 
   return true;
 }
@@ -179,8 +216,12 @@ void RobustMatcher::computeEssentialMat(const KeyPointVec &kpts1,
   }
 
   // default params
-  double focal = 1.0;
-  cv::Point2d pp = cv::Point2d(0,0);
+  double f = 55;                           // focal length in mm
+  double sx = 22.3, sy = 14.9;             // sensor size
+  double width = 640, height = 480;        // image size
+
+  double focal = f;
+  cv::Point2d pp = cv::Point2d(width/2,height/2);
   int method = cv::RANSAC;
   double prob = 0.999;
   double threshold = 1.0;
@@ -189,6 +230,32 @@ void RobustMatcher::computeEssentialMat(const KeyPointVec &kpts1,
   essentialMat = 
     findEssentialMat(kpts1_pts, kpts2_pts, focal, pp, method, prob, ransac_thresh_, inliers_mask);
 
+}
+
+
+// ***********************************************************************
+
+
+// Compute the fundamental matrix given a set of 
+// paired keypoints list
+void RobustMatcher::computeFundamentalMat(const KeyPointVec &kpts1,
+  const KeyPointVec &kpts2, cv::Mat &fundamentalMat, cv::Mat &inliers_mask)
+{
+  std::vector<cv::Point2f> kpts1_pts, kpts2_pts;
+
+  // put keypoints inside vector
+  for (int i = 0; i < kpts1.size(); ++i)
+  {
+    kpts1_pts.push_back(kpts1[i].pt);
+    kpts2_pts.push_back(kpts2[i].pt);
+  }
+
+  int method = cv::FM_RANSAC;
+  double prob = 0.99;
+  
+  // compute opencv essential mat
+  fundamentalMat = 
+    findFundamentalMat(kpts1_pts, kpts2_pts, method, ransac_thresh_, prob);
 }
 
 

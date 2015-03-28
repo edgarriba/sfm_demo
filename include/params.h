@@ -7,6 +7,8 @@ using namespace std;
 string tutorial_path = "../";
 string img1_path = tutorial_path + "data/box_pose1.JPG";  // image 1 path
 string img2_path = tutorial_path + "data/box_pose2.JPG";  // image 2 path
+string video1_path = tutorial_path + "data/box.mp4";  // image 2 path
+string video2_path = tutorial_path + "data/box2.mp4";  // image 2 path
 
 string mesh_path = tutorial_path + "data/horse.ply"; // box mesh path
 
