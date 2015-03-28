@@ -27,7 +27,7 @@ int main(int argc, char *argv[])
     return -1;
   }
 
-  Ptr<AKAZE> akaze = AKAZE::create();
+  Ptr<ORB> akaze = ORB::create();
   
   Ptr<DescriptorMatcher> matcher =
     DescriptorMatcher::create("BruteForce-Hamming");
@@ -85,59 +85,33 @@ int main(int argc, char *argv[])
 
     cout << "Computing frame " << counter << std::endl;
 
-    // find features, match and get essential matrix
-    //rmatcher.robustMatchEssentialMat(current_frame, previous_frame, inliers1, inliers2, inlier_matches, E);
+    // find features, match and compute essential matrix
+
+    cout << "Computing Essential Matrix ... " << endl;
+    rmatcher.robustMatchEssentialMat(current_frame, previous_frame, K, inliers1, inliers2, inlier_matches, E);
     
-    // find features, match and get fundamental matrix
-    rmatcher.robustMatchFundamentalMat(current_frame, previous_frame, inliers1, inliers2, inlier_matches, F);
-
-    // default params
-    double f = 55;                           // focal length in mm
-    double sx = 22.3, sy = 14.9;             // sensor size
-    double width = 640, height = 480;        // image size
-
-    Mat K = (Mat_<double>(3, 3) << width*f/sx, 0, width/2,   // fx 0 cx
-                                 0, height*f/sy, height/2, // 0 fy cx
-                                 0, 0, 1);                 // 0  0  1
-
-    // compute essential from fundamental
-    E = K.t() * F * K;
-/*
-    std::vector<cv::Point2f> points1, points2;
+    cout << "Essential: " << endl << E << endl;
 
     // put keypoints inside vector
+
+    std::vector<cv::Point2d> points1, points2;
     for (int i = 0; i < inliers1.size(); ++i)
     {
       points1.push_back(inliers1[i].pt);
       points2.push_back(inliers2[i].pt);
     }
 
-    cout << "E: " << std::endl << points1.size() <<endl;
-    cout << "F: " << std::endl << points2.size() <<endl;
+    // Recover pose
 
-    // Recover pose from essential matrix
-    cout << "E: " << std::endl << E <<endl;
-    cout << "F: " << std::endl << F <<endl;
-
-    double focal = f;
-    cv::Point2d pp = cv::Point2d(width/2,height/2);
-    recoverPose(E, points1, points2, R, t, focal, pp);
-    //recoverPose(E, points1, points2, R, t);
-*/
+    Mat R, t;
     
+    double focal = K.at<double>(0,0);
+    cv::Point2d pp = cv::Point2d(K.at<double>(0,2),K.at<double>(1,2));
 
-
-    SVD svd(E);
-    Matx33d W(0,-1, 0,   //HZ 9.13
-              1, 0, 0,
-              0, 0, 1);
-    Matx33d Winv(0,1,0,
-                -1,0,0,
-                 0,0,1);
-
-    R = svd.u * Mat(W) * svd.vt; //HZ 9.19
-    t = svd.u.col(2); //u3
-
+    recoverPose(E, points1, points2, R, t, focal, pp);
+  
+    cout << "R_diff: " << std::endl << R <<endl;
+    cout << "t_diff: " << std::endl << t <<endl;
 
     T = (Mat_<double>(4,4) << R.at<double>(0,0), R.at<double>(0,1), R.at<double>(0,2), t.at<double>(0,0),
                               R.at<double>(1,0), R.at<double>(1,1), R.at<double>(1,2), t.at<double>(1,0),

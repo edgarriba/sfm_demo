@@ -49,7 +49,7 @@ public:
 
 
   // Match features and compute essential mat
-  bool robustMatchEssentialMat(const cv::Mat &frame1, const cv::Mat &frame2,
+  bool robustMatchEssentialMat(const cv::Mat &frame1, const cv::Mat &frame2, const cv::Mat &K,
     KeyPointVec &kpts1_inliers, KeyPointVec &kpts2_inliers,
     DMatchVec &inliers_matches, cv::Mat &essentialMat);
 
@@ -76,8 +76,8 @@ protected:
 
   // Compute the essential matrix given a set of 
   // paired keypoints list
-  void computeEssentialMat(const KeyPointVec &kpts1,
-    const KeyPointVec &kpts2, cv::Mat &essentialMat, cv::Mat &inliers_mask);
+  void computeEssentialMat(const KeyPointVec &kpts1, const KeyPointVec &kpts2, 
+    const cv::Mat &K, cv::Mat &essentialMat, cv::Mat &inliers_mask);
 
   // Compute the fundamental matrix given a set of 
   // paired keypoints list

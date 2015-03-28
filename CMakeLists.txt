@@ -18,9 +18,9 @@ target_link_libraries( sfm_demo feaures_lib ${OpenCV_LIBS} )
 
 # TESTS
 add_executable( test_nn_match test/test_nn_match.cpp )
-add_executable( test_robust_essential test/test_robust_essential.cpp )
 add_executable( test_motion test/test_motion_estimation.cpp )
+add_executable( test_essential test/test_essential.cpp )
 
 target_link_libraries( test_nn_match feaures_lib ${OpenCV_LIBS} )
-target_link_libraries( test_robust_essential feaures_lib ${OpenCV_LIBS} )
 target_link_libraries( test_motion feaures_lib ${OpenCV_LIBS} )
+target_link_libraries( test_essential feaures_lib ${OpenCV_LIBS} )

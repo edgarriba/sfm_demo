@@ -81,7 +81,7 @@ void RobustMatcher::detectAndCompute(const cv::Mat &image, KeyPointVec &kpts, cv
 
 
 // Match features and compute essential mat
-bool RobustMatcher::robustMatchEssentialMat(const cv::Mat &frame1, const cv::Mat &frame2,
+bool RobustMatcher::robustMatchEssentialMat(const cv::Mat &frame1, const cv::Mat &frame2, const cv::Mat &K,
   KeyPointVec &kpts1_inliers, KeyPointVec &kpts2_inliers,
   DMatchVec &inliers_matches, cv::Mat &essentialMat)
 {
@@ -100,7 +100,7 @@ bool RobustMatcher::robustMatchEssentialMat(const cv::Mat &frame1, const cv::Mat
   // at least 4 points
   if(kpts2_good.size() >= 4)
   {
-    computeEssentialMat(kpts1_good, kpts2_good, essentialMat, inliers_mask);
+    computeEssentialMat(kpts1_good, kpts2_good, K, essentialMat, inliers_mask);
   }
   else
   {
@@ -109,6 +109,7 @@ bool RobustMatcher::robustMatchEssentialMat(const cv::Mat &frame1, const cv::Mat
 
   // extract inliers
   extractInliers(inliers_mask, kpts1_good, kpts2_good, kpts1_inliers, kpts2_inliers, inliers_matches);
+
 
   return true;
 }
@@ -164,7 +165,6 @@ void RobustMatcher::nnMatch(const cv::Mat &frame1, KeyPointVec &kpts1, cv::Mat &
   detectAndCompute(frame1, kpts1, desc1);
   detectAndCompute(frame2, kpts2, desc2);
 
-
   // Match the two image descriptors
   // return 2 nearest neighbours
   matcher_->knnMatch(desc1, desc2, nn_matches, 2);
@@ -203,8 +203,8 @@ int RobustMatcher::ratioTest(const DMatchVec2 &matches, DMatchVec &good_matches,
 
 // Compute the essential matrix given a set of 
 // paired keypoints list
-void RobustMatcher::computeEssentialMat(const KeyPointVec &kpts1,
-  const KeyPointVec &kpts2, cv::Mat &essentialMat, cv::Mat &inliers_mask)
+void RobustMatcher::computeEssentialMat(const KeyPointVec &kpts1, const KeyPointVec &kpts2,
+  const cv::Mat &K, cv::Mat &essentialMat, cv::Mat &inliers_mask)
 {
   std::vector<cv::Point2f> kpts1_pts, kpts2_pts;
 
@@ -220,11 +220,10 @@ void RobustMatcher::computeEssentialMat(const KeyPointVec &kpts1,
   double sx = 22.3, sy = 14.9;             // sensor size
   double width = 640, height = 480;        // image size
 
-  double focal = f;
-  cv::Point2d pp = cv::Point2d(width/2,height/2);
+  double focal = K.at<double>(0,0);
+  cv::Point2d pp = cv::Point2d(K.at<double>(0,2),K.at<double>(1,2));
   int method = cv::RANSAC;
   double prob = 0.999;
-  double threshold = 1.0;
   
   // compute opencv essential mat
   essentialMat = 
